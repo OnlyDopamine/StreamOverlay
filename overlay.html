@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stream Overlay - Community Question</title>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: transparent; }
+
+        .question-panel {
+            position: absolute;
+            top: 20px; 
+            left: 20px; 
+            width: 1000px;
+            height: 260px;
+            background-image: url('background.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            transition: opacity 0.5s ease;
+            opacity: 0; 
+        }
+
+        .dynamic-content {
+            display: grid;
+            grid-template-columns: 80px 1fr; 
+            grid-template-rows: auto auto; 
+            gap: 15px; 
+            
+            /* NEW: Forces the div to stay exactly 1000px wide, including padding */
+            box-sizing: border-box; 
+            width: 1000px; 
+            
+            padding-left: 60px; 
+            padding-right: 120px; 
+            padding-top: 45px; 
+        }
+
+        .icon-display {
+            grid-area: 1 / 1 / 2 / 2; 
+            width: 70px;
+            height: 70px;
+            justify-self: center;
+            align-self: center;
+        }
+
+        .username-display {
+            grid-area: 1 / 2 / 2 / 3; 
+            font-family: 'Montserrat', sans-serif; 
+            font-size: 34px;
+            font-weight: bold;
+            color: #E6BF6B; 
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            align-self: center;
+            text-transform: uppercase; 
+        }
+
+        .question-text-display {
+            grid-area: 2 / 2 / 3 / 3; 
+            font-family: 'Open Sans', sans-serif;
+            font-weight: normal;
+            color: #E6BF6B; 
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
+            align-self: flex-start;
+            text-transform: uppercase; 
+            
+            /* NEW: Strictly confines the text to its grid column */
+            max-width: 90%; 
+            word-wrap: break-word;
+            overflow-wrap: break-word; /* Extra safety for long unbroken strings */
+            
+            height: 110px; 
+            overflow: hidden; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="question-panel" id="main-panel">
+        <div class="dynamic-content">
+            <img id="icon-display" class="icon-display" src="" alt="Icon">
+            <div id="username-display" class="username-display">@Username</div>
+            <div id="question-text-display" class="question-text-display">Question text will load here.</div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3Yc9g3XB7FPbwaimfyMwg76dRchmu92w",
+            authDomain: "streamoverlay-84cd1.firebaseapp.com",
+            databaseURL: "https://streamoverlay-84cd1-default-rtdb.europe-west1.firebasedatabase.app/",
+            projectId: "streamoverlay-84cd1",
+            storageBucket: "streamoverlay-84cd1.firebasestorage.app",
+            messagingSenderId: "293942876995",
+            appId: "1:293942876995:web:024fc614dbfce900fdadf6"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        const overlayRef = ref(db, 'communityQuestion');
+        onValue(overlayRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                
+                document.getElementById('username-display').innerText = data.username;
+                document.getElementById('icon-display').src = data.icon;
+                
+                // ADJUSTMENT 3: Dynamic Font Size Logic
+                const questionElement = document.getElementById('question-text-display');
+                questionElement.innerText = data.text;
+                
+                let currentSize = 28; // The starting max font size
+                const minSize = 14;   // The absolute smallest the font can get before stopping
+                
+                // Reset the font size back to maximum for every new question
+                questionElement.style.fontSize = currentSize + 'px';
+
+                // The loop: While the text is physically taller than its 120px container...
+                while (questionElement.scrollHeight > questionElement.clientHeight && currentSize > minSize) {
+                    currentSize--; // Shrink font by 1 pixel
+                    questionElement.style.fontSize = currentSize + 'px'; // Apply new size
+                }
+
+                // Show or hide the panel
+                if (data.username && data.text) {
+                     document.getElementById('main-panel').style.opacity = "1";
+                } else {
+                     document.getElementById('main-panel').style.opacity = "0";
+                }
+            }
+        });
+    </script>
+</body>
+</html>
