@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <title>Stream Overlay - Community Question</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;700&display=swap" rel="stylesheet">
+    
     <style>
         body { margin: 0; overflow: hidden; background-color: transparent; }
 
@@ -24,8 +29,6 @@
             grid-template-columns: 80px 1fr; 
             grid-template-rows: auto auto; 
             gap: 15px; 
-            
-            /* NEW: Forces the div to stay exactly 1000px wide, including padding */
             box-sizing: border-box; 
             width: 1000px; 
             
@@ -44,9 +47,9 @@
 
         .username-display {
             grid-area: 1 / 2 / 2 / 3; 
-            font-family: 'Montserrat', sans-serif; 
+            font-family: 'Raleway', sans-serif; 
             font-size: 34px;
-            font-weight: bold;
+            font-weight: 700;
             color: #E6BF6B; 
             text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
             align-self: center;
@@ -55,17 +58,15 @@
 
         .question-text-display {
             grid-area: 2 / 2 / 3 / 3; 
-            font-family: 'Open Sans', sans-serif;
-            font-weight: normal;
+            font-family: 'Raleway', sans-serif;
+            font-weight: 400;
             color: #E6BF6B; 
             text-shadow: 2px 2px 5px rgba(0,0,0,0.7);
             align-self: flex-start;
             text-transform: uppercase; 
-            
-            /* NEW: Strictly confines the text to its grid column */
             max-width: 90%; 
             word-wrap: break-word;
-            overflow-wrap: break-word; /* Extra safety for long unbroken strings */
+            overflow-wrap: break-word;
             
             height: 110px; 
             overflow: hidden; 
@@ -106,24 +107,19 @@
                 
                 document.getElementById('username-display').innerText = data.username;
                 document.getElementById('icon-display').src = data.icon;
-                
-                // ADJUSTMENT 3: Dynamic Font Size Logic
                 const questionElement = document.getElementById('question-text-display');
                 questionElement.innerText = data.text;
                 
                 let currentSize = 28; // The starting max font size
                 const minSize = 14;   // The absolute smallest the font can get before stopping
                 
-                // Reset the font size back to maximum for every new question
                 questionElement.style.fontSize = currentSize + 'px';
 
-                // The loop: While the text is physically taller than its 120px container...
                 while (questionElement.scrollHeight > questionElement.clientHeight && currentSize > minSize) {
                     currentSize--; // Shrink font by 1 pixel
-                    questionElement.style.fontSize = currentSize + 'px'; // Apply new size
+                    questionElement.style.fontSize = currentSize + 'px';
                 }
 
-                // Show or hide the panel
                 if (data.username && data.text) {
                      document.getElementById('main-panel').style.opacity = "1";
                 } else {
