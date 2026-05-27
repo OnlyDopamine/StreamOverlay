@@ -12,53 +12,67 @@
             width: 100%; padding: 12px; margin: 5px 0; 
             border-radius: 4px; border: 2px solid #45475a; box-sizing: border-box;
             background: #181825; color: #cdd6f4; font-size: 16px;
-            font-family: inherit; /* Ensures the font matches */
+            font-family: inherit;
         }
         input:focus, select:focus { border-color: #89b4fa; outline: none; }
 	textarea { 
-            resize: vertical; /* Allows you to drag the bottom right corner up and down */
-            min-height: 100px; /* Gives you a nice tall box by default */
+            resize: vertical;
+            min-height: 100px;
         }
         button { background: #89b4fa; color: #11111b; font-weight: bold; cursor: pointer; border: none; margin-top: 15px;}
         button:hover { background: #74c7ec; }
         #status-msg { text-align: center; font-weight: bold; height: 1.2em; color: #a6e3a1; }
+		#admin-controls { display: none; }
+        #login-error { color: #f38ba8; text-align: center; font-weight: bold; margin-top: 10px;}
     </style>
 </head>
 <body>
 
     <div class="panel">
-        <h2>Push Question to Stream</h2>
+        <h2>Stream Control Panel</h2>
         
-        <div class="group">
-            <label for="icon-select">Social Platform:</label>
-            <select id="icon-select">
-                <option value="twitch.png">Twitch</option>
-                <option value="tiktok.png">TikTok</option>
-                <option value="discord.png">Discord</option>
-                <option value="twitter.png">Twitter / X</option>
-                <option value="instagram.png">Instagram</option>
-                <option value="youtube.png">YouTube</option>
-		<option value="reddit.png">Reddit</option>
-            </select>
+        <div id="login-section">
+            <div class="group">
+                <label>Admin Email:</label>
+                <input type="email" id="email-input" placeholder="admin@mystream.local">
+            </div>
+            <div class="group">
+                <label>Password:</label>
+                <input type="password" id="password-input" placeholder="••••••••">
+            </div>
+            <button id="login-btn">Log In</button>
+            <div id="login-error"></div>
         </div>
 
-        <div class="group">
-            <label for="username-input">User Name (Display):</label>
-            <input type="text" id="username-input" placeholder="@YourUsername">
+        <div id="admin-controls">
+            <div class="group">
+                <label for="icon-select">Social Platform:</label>
+                <select id="icon-select">
+                    <option value="twitch.png">Twitch</option>
+                    <option value="tiktok.png">TikTok</option>
+                    <option value="discord.png">Discord</option>
+                    <option value="twitter.png">Twitter / X</option>
+                    <option value="instagram.png">Instagram</option>
+                    <option value="youtube.png">YouTube</option>
+                </select>
+            </div>
+            <div class="group">
+                <label for="username-input">User Name (Display):</label>
+                <input type="text" id="username-input" placeholder="@YourUsername">
+            </div>
+            <div class="group">
+                <label for="text-input">Question Text:</label>
+                <textarea id="text-input" placeholder="Start typing the question..."></textarea>
+            </div>
+            <button id="update-btn">Push to Stream</button>
+            <p id="status-msg"></p>
         </div>
-
-        <div class="group">
-            <label for="text-input">Question Text:</label>
-            <textarea id="text-input" placeholder="Start typing the question..."></textarea>
-        </div>
-
-        <button id="update-btn">Push to Stream</button>
-        <p id="status-msg"></p>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA3Yc9g3XB7FPbwaimfyMwg76dRchmu92w",
@@ -72,13 +86,35 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+		const auth = getAuth(app);
 
+        // --- LOGIN LOGIC ---
+        document.getElementById('login-btn').addEventListener('click', () => {
+            const email = document.getElementById('email-input').value;
+            const password = document.getElementById('password-input').value;
+            const errorDiv = document.getElementById('login-error');
+            
+            errorDiv.innerText = "Logging in...";
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    // Success! Hide login, show controls.
+                    document.getElementById('login-section').style.display = 'none';
+                    document.getElementById('admin-controls').style.display = 'block';
+                })
+                .catch((error) => {
+                    // Failed login
+                    errorDiv.innerText = "Invalid credentials. Try again.";
+                    console.error(error);
+                });
+        });
+
+        // --- PUSH TO STREAM LOGIC ---
         document.getElementById('update-btn').addEventListener('click', () => {
             const userNameText = document.getElementById('username-input').value;
             const questionText = document.getElementById('text-input').value;
             const iconFile = document.getElementById('icon-select').value;
 
-            // Updated Database Structure
             set(ref(db, 'communityQuestion'), {
                 username: userNameText,
                 text: questionText,
@@ -87,6 +123,7 @@
             .then(() => {
                 const status = document.getElementById('status-msg');
                 status.innerText = "Overlay Updated!";
+                document.getElementById('text-input').value = ""; 
                 setTimeout(() => status.innerText = "", 2000);
             })
             .catch((error) => console.error("Error updating:", error));
