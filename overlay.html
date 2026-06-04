@@ -99,6 +99,7 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
+        let hideTimeout;
 
         const overlayRef = ref(db, 'communityQuestion');
         onValue(overlayRef, (snapshot) => {
@@ -110,20 +111,31 @@
                 const questionElement = document.getElementById('question-text-display');
                 questionElement.innerText = data.text;
                 
-                let currentSize = 28; // The starting max font size
-                const minSize = 14;   // The absolute smallest the font can get before stopping
-                
+                let currentSize = 28;
+                const minSize = 14;
                 questionElement.style.fontSize = currentSize + 'px';
 
                 while (questionElement.scrollHeight > questionElement.clientHeight && currentSize > minSize) {
-                    currentSize--; // Shrink font by 1 pixel
+                    currentSize--;
                     questionElement.style.fontSize = currentSize + 'px';
                 }
 
+                const panel = document.getElementById('main-panel');
                 if (data.username && data.text) {
-                     document.getElementById('main-panel').style.opacity = "1";
+                    panel.style.opacity = "1";
+                    
+                    if (hideTimeout) {
+                        clearTimeout(hideTimeout);
+                    }
+                    
+                    const durationInMs = (data.duration || 15) * 1000;
+                    
+                    hideTimeout = setTimeout(() => {
+                        panel.style.opacity = "0"; 
+                    }, durationInMs);
+
                 } else {
-                     document.getElementById('main-panel').style.opacity = "0";
+                    panel.style.opacity = "0";
                 }
             }
         });
