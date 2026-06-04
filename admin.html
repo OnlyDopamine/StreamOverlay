@@ -22,9 +22,9 @@
         button { background: #89b4fa; color: #11111b; font-weight: bold; cursor: pointer; border: none; margin-top: 15px;}
         button:hover { background: #74c7ec; }
         #status-msg { text-align: center; font-weight: bold; height: 1.2em; color: #a6e3a1; }
-		
 		#admin-controls { display: none; }
         #login-error { color: #f38ba8; text-align: center; font-weight: bold; margin-top: 10px;}
+		input[type="number"] { width: 100px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -58,12 +58,16 @@
                 </select>
             </div>
             <div class="group">
-                <label for="username-input">User Name (Display):</label>
+                <label for="username-input">Username:</label>
                 <input type="text" id="username-input" placeholder="@YourUsername">
             </div>
             <div class="group">
                 <label for="text-input">Notification Text:</label>
                 <textarea id="text-input" placeholder="Start typing the question..."></textarea>
+            </div>
+			<div class="group">
+                <label for="duration-input">Display Time (seconds):</label>
+                <input type="number" id="duration-input" value="15" min="1">
             </div>
             <button id="update-btn">Push to Stream</button>
             <p id="status-msg"></p>
@@ -89,7 +93,6 @@
         const db = getDatabase(app);
 		const auth = getAuth(app);
 
-        // --- LOGIN LOGIC ---
         document.getElementById('login-btn').addEventListener('click', () => {
             const email = document.getElementById('email-input').value;
             const password = document.getElementById('password-input').value;
@@ -99,27 +102,26 @@
 
             signInWithEmailAndPassword(auth, email, password)
                 .then((userCredential) => {
-                    // Success! Hide login, show controls.
                     document.getElementById('login-section').style.display = 'none';
                     document.getElementById('admin-controls').style.display = 'block';
                 })
                 .catch((error) => {
-                    // Failed login
                     errorDiv.innerText = "Invalid credentials. Try again.";
                     console.error(error);
                 });
         });
 
-        // --- PUSH TO STREAM LOGIC ---
         document.getElementById('update-btn').addEventListener('click', () => {
             const userNameText = document.getElementById('username-input').value;
             const questionText = document.getElementById('text-input').value;
             const iconFile = document.getElementById('icon-select').value;
+			const displayDuration = parseInt(document.getElementById('duration-input').value) || 15;
 
             set(ref(db, 'communityQuestion'), {
                 username: userNameText,
                 text: questionText,
-                icon: iconFile
+                icon: iconFile,
+				duration: displayDuration
             })
             .then(() => {
                 const status = document.getElementById('status-msg');
