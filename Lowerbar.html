@@ -1,0 +1,268 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+			<title>Stream Overlay - Lower Bar</title>
+
+			<link rel="preconnect" href="https://fonts.googleapis.com">
+				<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+					<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;500&display=swap" rel="stylesheet">
+
+						<style>
+							* { margin: 0; padding: 0; box-sizing: border-box; }
+							body { overflow: hidden; background-color: transparent; }
+
+							#lb-scale-root {
+							position: absolute;
+							top: 0; left: 0;
+							width: 2560px; height: 1440px;
+							transform-origin: top left;
+							pointer-events: none;
+							}
+
+							#lower-bar {
+							position: absolute;
+							top: 0; left: 0;
+							width: 2560px; height: 1440px;
+							opacity: 0;
+							transition: opacity 0.6s ease;
+							}
+							#lower-bar.visible { opacity: 1; }
+
+							#lb-image {
+							position: absolute;
+							top: 0; left: 0;
+							width: 2560px; height: 1440px;
+							}
+
+							#lb-text-layer {
+							position: absolute;
+							top: 0; left: 0;
+							width: 2560px; height: 1440px;
+							}
+
+							.lb-cell {
+							position: absolute;
+							top: 1340px;
+							height: 99px;
+							display: flex;
+							flex-direction: column;
+							align-items: center;
+							justify-content: center;
+							gap: 3px;
+							padding: 0 16px;
+							}
+
+							.lb-name {
+							font-family: 'Raleway', sans-serif;
+							font-weight: 500;
+							font-size: 28px;       /* ← adjust name size here */
+							color: #D4A842;
+							text-transform: uppercase;
+							letter-spacing: 0.08em;
+							white-space: nowrap;
+							line-height: 1.1;
+							}
+
+							.lb-title {
+							font-family: 'Raleway', sans-serif;
+							font-weight: 300;
+							font-size: 14px;       /* ← default title size; auto-shrinks if too wide */
+							color: #D4A842;
+							text-transform: uppercase;
+							letter-spacing: 0.13em;
+							white-space: nowrap;
+							line-height: 1.1;
+							}
+
+							.lb-notification {
+							font-family: 'Raleway', sans-serif;
+							font-weight: 500;
+							font-size: 22px;       /* ← adjust notification size here */
+							color: #D4A842;
+							text-transform: uppercase;
+							letter-spacing: 0.1em;
+							text-align: center;
+							line-height: 1.45;
+							white-space: pre-line;
+							}
+
+							/* Bar 1 (notification): zone x=697→1863 */
+							#lb-bar1 .lb-cell { left: 697px; width: 1166px; padding: 10px 16px; overflow: hidden; }
+
+							/* Bar 2 (2 guests) */
+							#lb-bar2 .lb-cell-1 { left: 947px;  width: 333px; }
+							#lb-bar2 .lb-cell-2 { left: 1280px; width: 333px; }
+
+							/* Bar 3 (3 guests) */
+							#lb-bar3 .lb-cell-1 { left: 781px;  width: 333px; }
+							#lb-bar3 .lb-cell-2 { left: 1114px; width: 333px; }
+							#lb-bar3 .lb-cell-3 { left: 1447px; width: 334px; }
+						</style>
+					</head>
+	<body>
+
+		<div id="lb-scale-root">
+			<div id="lower-bar">
+
+				<img id="lb-image" src="" alt="">
+
+					<div id="lb-text-layer">
+
+						<!-- Bar 1: notification -->
+						<div id="lb-bar1" style="display:none">
+							<div class="lb-cell">
+								<div class="lb-notification" id="lb1-text"></div>
+							</div>
+						</div>
+
+						<!-- Bar 2: 2 people -->
+						<div id="lb-bar2" style="display:none">
+							<div class="lb-cell lb-cell-1">
+								<div class="lb-name"  id="lb2-name-1"></div>
+								<div class="lb-title" id="lb2-title-1"></div>
+							</div>
+							<div class="lb-cell lb-cell-2">
+								<div class="lb-name"  id="lb2-name-2"></div>
+								<div class="lb-title" id="lb2-title-2"></div>
+							</div>
+						</div>
+
+						<!-- Bar 3: 3 people -->
+						<div id="lb-bar3" style="display:none">
+							<div class="lb-cell lb-cell-1">
+								<div class="lb-name"  id="lb3-name-1"></div>
+								<div class="lb-title" id="lb3-title-1"></div>
+							</div>
+							<div class="lb-cell lb-cell-2">
+								<div class="lb-name"  id="lb3-name-2"></div>
+								<div class="lb-title" id="lb3-title-2"></div>
+							</div>
+							<div class="lb-cell lb-cell-3">
+								<div class="lb-name"  id="lb3-name-3"></div>
+								<div class="lb-title" id="lb3-title-3"></div>
+							</div>
+						</div>
+
+					</div>
+				</div>
+		</div>
+
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+			import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+			const firebaseConfig = {
+			apiKey: "AIzaSyA3Yc9g3XB7FPbwaimfyMwg76dRchmu92w",
+			authDomain: "streamoverlay-84cd1.firebaseapp.com",
+			databaseURL: "https://streamoverlay-84cd1-default-rtdb.europe-west1.firebasedatabase.app/",
+			projectId: "streamoverlay-84cd1",
+			storageBucket: "streamoverlay-84cd1.firebasestorage.app",
+			messagingSenderId: "293942876995",
+			appId: "1:293942876995:web:024fc614dbfce900fdadf6"
+			};
+
+			const app = initializeApp(firebaseConfig);
+			const db  = getDatabase(app);
+
+			function scaleRoot() {
+			const scale = Math.min(window.innerWidth / 2560, window.innerHeight / 1440);
+			document.getElementById('lb-scale-root').style.transform = `scale(${scale})`;
+			}
+			scaleRoot();
+			window.addEventListener('resize', scaleRoot);
+
+			const lowerBarEl = document.getElementById('lower-bar');
+			const lbImage    = document.getElementById('lb-image');
+			const bars       = {
+			bar1: document.getElementById('lb-bar1'),
+			bar2: document.getElementById('lb-bar2'),
+			bar3: document.getElementById('lb-bar3')
+			};
+			const IMAGES = {
+			notification: 'LowerBar_1_empty.png',
+			guests2:      'LowerBar_2_empty.png',
+			guests3:      'LowerBar_3_empty.png',
+			};
+
+			// Shrink text until it fits within its parent cell width (respecting padding)
+			function fitText(el, defaultSize, minSize) {
+			el.style.fontSize = defaultSize + 'px';
+			const parent = el.parentElement;
+			const style = getComputedStyle(parent);
+			const maxWidth = parent.clientWidth
+			- parseFloat(style.paddingLeft)
+			- parseFloat(style.paddingRight);
+			while (el.scrollWidth > maxWidth && defaultSize > minSize) {
+			defaultSize -= 0.5;
+			el.style.fontSize = defaultSize + 'px';
+			}
+			}
+
+			// Shrink notification text to fit within cell width AND height
+			function fitNotification(el, defaultSize, minSize) {
+			el.style.fontSize = defaultSize + 'px';
+			const parent = el.parentElement;
+			const style = getComputedStyle(parent);
+			const maxWidth  = parent.clientWidth
+			- parseFloat(style.paddingLeft)
+			- parseFloat(style.paddingRight);
+			const maxHeight = parent.clientHeight
+			- parseFloat(style.paddingTop)
+			- parseFloat(style.paddingBottom);
+			while ((el.scrollWidth > maxWidth || el.scrollHeight > maxHeight) && defaultSize > minSize) {
+			defaultSize -= 0.5;
+			el.style.fontSize = defaultSize + 'px';
+			}
+			}
+
+			// After making a bar visible, fit all name+title elements inside it
+			function fitAllInBar(barEl) {
+			barEl.querySelectorAll('.lb-name').forEach(el  => fitText(el, 28, 14));
+			barEl.querySelectorAll('.lb-title').forEach(el => fitText(el, 14, 8));
+			}
+
+			onValue(ref(db, 'lowerBar'), (snapshot) => {
+			const data = snapshot.val();
+
+			if (!data || !data.visible) {
+			lowerBarEl.classList.remove('visible');
+			return;
+			}
+
+			Object.values(bars).forEach(b => b.style.display = 'none');
+
+			if (data.type === 'notification') {
+			lbImage.src = IMAGES.notification;
+			document.getElementById('lb1-text').textContent = data.text || '';
+			bars.bar1.style.display = 'block';
+			fitNotification(document.getElementById('lb1-text'), 22, 10);
+
+			} else if (data.type === 'guests2' && data.guests) {
+			lbImage.src = IMAGES.guests2;
+			const g = data.guests;
+			document.getElementById('lb2-name-1').textContent  = (g[0]?.name  || '').toUpperCase();
+			document.getElementById('lb2-title-1').textContent = (g[0]?.title || '').toUpperCase();
+			document.getElementById('lb2-name-2').textContent  = (g[1]?.name  || '').toUpperCase();
+			document.getElementById('lb2-title-2').textContent = (g[1]?.title || '').toUpperCase();
+			bars.bar2.style.display = 'block';
+			fitAllInBar(bars.bar2);
+
+			} else if (data.type === 'guests3' && data.guests) {
+			lbImage.src = IMAGES.guests3;
+			const g = data.guests;
+			document.getElementById('lb3-name-1').textContent  = (g[0]?.name  || '').toUpperCase();
+			document.getElementById('lb3-title-1').textContent = (g[0]?.title || '').toUpperCase();
+			document.getElementById('lb3-name-2').textContent  = (g[1]?.name  || '').toUpperCase();
+			document.getElementById('lb3-title-2').textContent = (g[1]?.title || '').toUpperCase();
+			document.getElementById('lb3-name-3').textContent  = (g[2]?.name  || '').toUpperCase();
+			document.getElementById('lb3-title-3').textContent = (g[2]?.title || '').toUpperCase();
+			bars.bar3.style.display = 'block';
+			fitAllInBar(bars.bar3);
+			}
+
+			lowerBarEl.classList.add('visible');
+			});
+		</script>
+	</body>
+</html>
