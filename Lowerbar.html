@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -39,6 +39,7 @@
 							position: absolute;
 							top: 0; left: 0;
 							width: 2560px; height: 1440px;
+							transition: opacity 0.5s ease;
 							}
 
 							.lb-cell {
@@ -56,7 +57,7 @@
 							.lb-name {
 							font-family: 'Raleway', sans-serif;
 							font-weight: 500;
-							font-size: 28px;       /* ← adjust name size here */
+							font-size: 28px;       
 							color: #D4A842;
 							text-transform: uppercase;
 							letter-spacing: 0.08em;
@@ -67,7 +68,7 @@
 							.lb-title {
 							font-family: 'Raleway', sans-serif;
 							font-weight: 300;
-							font-size: 14px;       /* ← default title size; auto-shrinks if too wide */
+							font-size: 14px;       
 							color: #D4A842;
 							text-transform: uppercase;
 							letter-spacing: 0.13em;
@@ -78,7 +79,7 @@
 							.lb-notification {
 							font-family: 'Raleway', sans-serif;
 							font-weight: 500;
-							font-size: 22px;       /* ← adjust notification size here */
+							font-size: 22px;      
 							color: #D4A842;
 							text-transform: uppercase;
 							letter-spacing: 0.1em;
@@ -222,14 +223,9 @@
 			barEl.querySelectorAll('.lb-title').forEach(el => fitText(el, 14, 8));
 			}
 
-			onValue(ref(db, 'lowerBar'), (snapshot) => {
-			const data = snapshot.val();
+			const textLayer = document.getElementById('lb-text-layer');
 
-			if (!data || !data.visible) {
-			lowerBarEl.classList.remove('visible');
-			return;
-			}
-
+			function updateContent(data) {
 			Object.values(bars).forEach(b => b.style.display = 'none');
 
 			if (data.type === 'notification') {
@@ -260,6 +256,22 @@
 			bars.bar3.style.display = 'block';
 			fitAllInBar(bars.bar3);
 			}
+			}
+
+			onValue(ref(db, 'lowerBar'), (snapshot) => {
+			const data = snapshot.val();
+
+			if (!data || !data.visible) {
+			lowerBarEl.classList.remove('visible');
+			return;
+			}
+
+			// Fade text out, swap content, fade back in
+			textLayer.style.opacity = '0';
+			setTimeout(() => {
+			updateContent(data);
+			textLayer.style.opacity = '1';
+			}, 500);
 
 			lowerBarEl.classList.add('visible');
 			});
