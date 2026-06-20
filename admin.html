@@ -1,138 +1,626 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Overlay Admin Panel</title>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 40px; background: #1e1e2e; color: #cdd6f4; }
-        .panel { max-width: 450px; background: #313244; padding: 20px; border-radius: 8px; margin: 0 auto; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
-        .group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; color: #f5c2e7; }
-        input, select, textarea, button { 
-            width: 100%; padding: 12px; margin: 5px 0; 
-            border-radius: 4px; border: 2px solid #45475a; box-sizing: border-box;
-            background: #181825; color: #cdd6f4; font-size: 16px;
-            font-family: inherit;
-        }
-        input:focus, select:focus { border-color: #89b4fa; outline: none; }
-	textarea { 
-            resize: vertical;
-            min-height: 100px;
-        }
-        button { background: #89b4fa; color: #11111b; font-weight: bold; cursor: pointer; border: none; margin-top: 15px;}
-        button:hover { background: #74c7ec; }
-        #status-msg { text-align: center; font-weight: bold; height: 1.2em; color: #a6e3a1; }
-		#admin-controls { display: none; }
-        #login-error { color: #f38ba8; text-align: center; font-weight: bold; margin-top: 10px;}
-		input[type="number"] { width: 100px; display: inline-block; }
-    </style>
-</head>
-<body>
+	<head>
+		<meta charset="UTF-8">
+			<title>Overlay Admin Panel</title>
+			<link rel="preconnect" href="https://fonts.googleapis.com">
+				<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500;700&display=swap" rel="stylesheet">
+					<style>
+						*, *::before, *::after { box-sizing: border-box; }
 
-    <div class="panel">
-        <h2>Stream Control Panel</h2>
-        
-        <div id="login-section">
-            <div class="group">
-                <label>Admin Email:</label>
-                <input type="email" id="email-input" placeholder="admin@mystream.local">
-            </div>
-            <div class="group">
-                <label>Password:</label>
-                <input type="password" id="password-input" placeholder="••••••••">
-            </div>
-            <button id="login-btn">Log In</button>
-            <div id="login-error"></div>
+						body {
+						font-family: 'Segoe UI', sans-serif;
+						padding: 40px 20px;
+						background: #1e1e2e;
+						color: #cdd6f4;
+						min-height: 100vh;
+						}
+
+						h2 { text-align: center; margin-bottom: 24px; color: #f5c2e7; }
+						h3 { color: #89b4fa; margin: 0 0 14px; font-size: 14px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+						.layout {
+						display: flex;
+						gap: 20px;
+						max-width: 980px;
+						margin: 0 auto;
+						align-items: flex-start;
+						}
+
+						/* ── panels ── */
+						.panel {
+						background: #313244;
+						padding: 22px;
+						border-radius: 8px;
+						box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+						}
+
+						.panel-left  { flex: 0 0 340px; }
+						.panel-right { flex: 1; min-width: 0; }
+
+						/* ── form elements ── */
+						.group { margin-bottom: 13px; }
+						label { display: block; font-weight: bold; margin-bottom: 4px; color: #f5c2e7; font-size: 13px; }
+
+						input, select, textarea {
+						width: 100%; padding: 10px 12px;
+						border-radius: 4px; border: 2px solid #45475a;
+						background: #181825; color: #cdd6f4; font-size: 15px;
+						font-family: inherit;
+						}
+						input:focus, select:focus, textarea:focus { border-color: #89b4fa; outline: none; }
+						textarea { resize: vertical; min-height: 80px; }
+						input[type="number"] { width: 100px; }
+
+						/* ── buttons ── */
+						.btn {
+						width: 100%; padding: 11px;
+						border-radius: 4px; border: none;
+						font-weight: bold; font-size: 15px;
+						cursor: pointer; transition: background 0.15s;
+						margin-top: 6px;
+						}
+						.btn-primary   { background: #89b4fa; color: #11111b; }
+						.btn-primary:hover { background: #74c7ec; }
+						.btn-danger    { background: #f38ba8; color: #11111b; }
+						.btn-danger:hover  { background: #eb6a8a; }
+						.btn-secondary { background: #45475a; color: #cdd6f4; }
+						.btn-secondary:hover { background: #585b70; }
+
+						/* ── status ── */
+						.status-msg { text-align: center; font-weight: bold; min-height: 1.3em; color: #a6e3a1; font-size: 13px; margin-top: 8px; }
+
+						/* ── login ── */
+						#login-error { color: #f38ba8; text-align: center; font-weight: bold; margin-top: 8px; font-size: 13px; }
+						#admin-area  { display: none; }
+
+						/* ── Lower Bar section ── */
+						.bar-type-tabs {
+						display: flex;
+						gap: 8px;
+						margin-bottom: 18px;
+						}
+						.tab-btn {
+						flex: 1;
+						padding: 9px 6px;
+						border-radius: 4px;
+						border: 2px solid #45475a;
+						background: #181825;
+						color: #cdd6f4;
+						font-size: 12px;
+						font-weight: bold;
+						cursor: pointer;
+						text-align: center;
+						text-transform: uppercase;
+						letter-spacing: 0.05em;
+						transition: border-color 0.15s, background 0.15s;
+						}
+						.tab-btn.active {
+						border-color: #C9A84C;
+						background: #2a2615;
+						color: #C9A84C;
+						}
+
+						.bar-form { display: none; }
+						.bar-form.active { display: block; }
+
+						.guest-row {
+						background: #1e1e2e;
+						border-radius: 6px;
+						padding: 12px 14px;
+						margin-bottom: 10px;
+						}
+						.guest-row-label {
+						font-size: 11px;
+						font-weight: bold;
+						color: #89b4fa;
+						text-transform: uppercase;
+						letter-spacing: 0.08em;
+						margin-bottom: 8px;
+						}
+						.guest-fields {
+						display: grid;
+						grid-template-columns: 1fr 1fr;
+						gap: 8px;
+						}
+
+						/* ── bar preview strip ── */
+						.bar-preview-wrap {
+						margin-top: 16px;
+						background: #181825;
+						border-radius: 6px;
+						padding: 10px;
+						}
+						.bar-preview-label {
+						font-size: 11px;
+						color: #6c7086;
+						text-transform: uppercase;
+						letter-spacing: 0.08em;
+						margin-bottom: 6px;
+						}
+						.bar-preview {
+						width: 100%;
+						height: 36px;
+						background: #1C1A18;
+						border-top: 2px solid #C9A84C;
+						border-radius: 2px;
+						display: flex;
+						align-items: stretch;
+						position: relative;
+						overflow: hidden;
+						}
+						.bar-preview::before {
+						content: '';
+						position: absolute;
+						top: -5px; left: 50%;
+						transform: translateX(-50%) rotate(45deg);
+						width: 8px; height: 8px;
+						background: #C9A84C;
+						z-index: 5;
+						}
+						.bp-logo {
+						flex: 0 0 80px;
+						border-right: 1px solid rgba(201,168,76,0.3);
+						display: flex; align-items: center; justify-content: center;
+						}
+						.bp-logo-text {
+						font-family: 'Raleway', sans-serif;
+						font-size: 7px; font-weight: 500;
+						color: #C9A84C; text-transform: uppercase; letter-spacing: 0.12em;
+						line-height: 1.2; text-align: center; padding: 2px;
+						}
+						.bp-cell {
+						flex: 1;
+						display: flex; flex-direction: column;
+						align-items: center; justify-content: center;
+						gap: 1px; padding: 0 6px;
+						border-left: 1px solid rgba(201,168,76,0.3);
+						}
+						.bp-cell:first-child { border-left: none; }
+						.bp-name {
+						font-family: 'Raleway', sans-serif;
+						font-size: 8px; font-weight: 500;
+						color: #D4A842; text-transform: uppercase; letter-spacing: 0.06em;
+						white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+						}
+						.bp-title {
+						font-family: 'Raleway', sans-serif;
+						font-size: 6px; font-weight: 300;
+						color: #D4A842; text-transform: uppercase; letter-spacing: 0.08em;
+						white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+						}
+						.bp-notification {
+						font-family: 'Raleway', sans-serif;
+						font-size: 7px; font-weight: 300;
+						color: #D4A842; text-transform: uppercase; letter-spacing: 0.08em;
+						text-align: center; padding: 0 8px;
+						}
+						.bp-right-logo { flex: 0 0 50px; border-left: 1px solid rgba(201,168,76,0.3); }
+
+						/* divider between the two panels */
+						.divider { border: none; border-top: 1px solid #45475a; margin: 18px 0; }
+
+						/* visibility badge */
+						.vis-badge {
+						display: inline-block;
+						padding: 2px 8px; border-radius: 20px;
+						font-size: 11px; font-weight: bold;
+						margin-left: 8px; vertical-align: middle;
+						}
+						.vis-badge.on  { background: #a6e3a1; color: #11111b; }
+						.vis-badge.off { background: #45475a; color: #cdd6f4; }
+					</style>
+				</head>
+	<body>
+
+		<div id="login-area">
+			<div class="panel" style="max-width:380px;margin:0 auto;">
+				<h2>Stream Control Panel</h2>
+				<div class="group">
+					<label>Admin Email</label>
+					<input type="email" id="email-input" placeholder="admin@mystream.local">
         </div>
-
-        <div id="admin-controls">
-            <div class="group">
-                <label for="icon-select">Social Platform:</label>
-                <select id="icon-select">
-                    <option value="twitch.png">Twitch</option>
-                    <option value="tiktok.png">TikTok</option>
-                    <option value="discord.png">Discord</option>
-                    <option value="twitter.png">Twitter / X</option>
-                    <option value="instagram.png">Instagram</option>
-                    <option value="youtube.png">YouTube</option>
-					<option value="reddit.png">Reddit</option>
-                </select>
-            </div>
-            <div class="group">
-                <label for="username-input">Username:</label>
-                <input type="text" id="username-input" placeholder="@YourUsername">
-            </div>
-            <div class="group">
-                <label for="text-input">Notification Text:</label>
-                <textarea id="text-input" placeholder="Start typing the question..."></textarea>
-            </div>
-			<div class="group">
-                <label for="duration-input">Display Time (seconds):</label>
-                <input type="number" id="duration-input" value="15" min="1">
-            </div>
-            <button id="update-btn">Push to Stream</button>
-            <p id="status-msg"></p>
+				<div class="group">
+					<label>Password</label>
+					<input type="password" id="password-input" placeholder="••••••••">
         </div>
-    </div>
+				<button class="btn btn-primary" id="login-btn">Log In</button>
+				<div id="login-error"></div>
+			</div>
+		</div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+		<div id="admin-area">
+			<h2>Stream Control Panel</h2>
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyA3Yc9g3XB7FPbwaimfyMwg76dRchmu92w",
-            authDomain: "streamoverlay-84cd1.firebaseapp.com",
-            databaseURL: "https://streamoverlay-84cd1-default-rtdb.europe-west1.firebasedatabase.app/",
-            projectId: "streamoverlay-84cd1",
-            storageBucket: "streamoverlay-84cd1.firebasestorage.app",
-            messagingSenderId: "293942876995",
-            appId: "1:293942876995:web:024fc614dbfce900fdadf6"
-        };
+			<div class="layout">
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-		const auth = getAuth(app);
+				<!-- ══ LEFT: Notifications ══ -->
+				<div class="panel panel-left">
+					<h3>
+						Notifications
+						<span class="vis-badge off" id="cq-vis-badge">Hidden</span>
+					</h3>
 
-        document.getElementById('login-btn').addEventListener('click', () => {
-            const email = document.getElementById('email-input').value;
-            const password = document.getElementById('password-input').value;
-            const errorDiv = document.getElementById('login-error');
-            
-            errorDiv.innerText = "Logging in...";
+					<div class="group">
+						<label>Social Platform</label>
+						<select id="icon-select">
+							<option value="twitch.png">Twitch</option>
+							<option value="tiktok.png">TikTok</option>
+							<option value="discord.png">Discord</option>
+							<option value="twitter.png">Twitter / X</option>
+							<option value="instagram.png">Instagram</option>
+							<option value="youtube.png">YouTube</option>
+							<option value="reddit.png">Reddit</option>
+						</select>
+					</div>
+					<div class="group">
+						<label>Username</label>
+						<input type="text" id="username-input" placeholder="@YourUsername">
+            </div>
+					<div class="group">
+						<label>Text</label>
+						<textarea id="text-input" placeholder="Start typing the question..."></textarea>
+					</div>
+					<div class="group">
+						<label>Display Time (seconds)</label>
+						<input type="number" id="duration-input" value="15" min="1">
+            </div>
+					<button class="btn btn-primary" id="update-btn">Push to Stream</button>
+					<button class="btn btn-danger" id="reset-btn">Remove</button>
+					<p class="status-msg" id="status-msg"></p>
+				</div>
 
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
-                    document.getElementById('login-section').style.display = 'none';
-                    document.getElementById('admin-controls').style.display = 'block';
-                })
-                .catch((error) => {
-                    errorDiv.innerText = "Invalid credentials. Try again.";
-                    console.error(error);
-                });
-        });
+				<!-- ══ RIGHT: Lower Bar ══ -->
+				<div class="panel panel-right">
+					<h3>
+						Lower Bar
+						<span class="vis-badge off" id="bar-vis-badge">Hidden</span>
+					</h3>
 
-        document.getElementById('update-btn').addEventListener('click', () => {
-            const userNameText = document.getElementById('username-input').value;
-            const questionText = document.getElementById('text-input').value;
-            const iconFile = document.getElementById('icon-select').value;
+					<!-- Type selector tabs -->
+					<div class="bar-type-tabs">
+						<div class="tab-btn active" data-type="notification">Notification</div>
+						<div class="tab-btn" data-type="guests2">2 People</div>
+						<div class="tab-btn" data-type="guests3">3 People</div>
+					</div>
+
+					<!-- Notification form -->
+					<div class="bar-form active" id="form-notification">
+						<div class="group">
+							<label>Notification Text (use Enter for line break)</label>
+							<textarea id="notif-text" placeholder="I LOVE ANIME&#10;THERE IS NOTHING BETTER IN LIFE" rows="3"></textarea>
+						</div>
+					</div>
+
+					<!-- 2 People form -->
+					<div class="bar-form" id="form-guests2">
+						<div class="guest-row">
+							<div class="guest-row-label">Host</div>
+							<div class="guest-fields">
+								<div class="group" style="margin:0">
+									<label>Name</label>
+									<input type="text" id="g2-name-1" placeholder="HOST NAME">
+                        </div>
+								<div class="group" style="margin:0">
+									<label>Title</label>
+									<input type="text" id="g2-title-1" placeholder="HOST TITLE">
+                        </div>
+							</div>
+						</div>
+						<div class="guest-row">
+							<div class="guest-row-label">Guest</div>
+							<div class="guest-fields">
+								<div class="group" style="margin:0">
+									<label>Name</label>
+									<input type="text" id="g2-name-2" placeholder="GUEST NAME">
+                        </div>
+								<div class="group" style="margin:0">
+									<label>Title</label>
+									<input type="text" id="g2-title-2" placeholder="GUEST TITLE">
+                        </div>
+							</div>
+						</div>
+					</div>
+
+					<!-- 3 People form -->
+					<div class="bar-form" id="form-guests3">
+						<div class="guest-row">
+							<div class="guest-row-label">Host</div>
+							<div class="guest-fields">
+								<div class="group" style="margin:0">
+									<label>Name</label>
+									<input type="text" id="g3-name-1" placeholder="HOST NAME">
+                        </div>
+								<div class="group" style="margin:0">
+									<label>Title</label>
+									<input type="text" id="g3-title-1" placeholder="HOST TITLE">
+                        </div>
+							</div>
+						</div>
+						<div class="guest-row">
+							<div class="guest-row-label">Guest 1</div>
+							<div class="guest-fields">
+								<div class="group" style="margin:0">
+									<label>Name</label>
+									<input type="text" id="g3-name-2" placeholder="GUEST NAME">
+                        </div>
+								<div class="group" style="margin:0">
+									<label>Title</label>
+									<input type="text" id="g3-title-2" placeholder="GUEST TITLE">
+                        </div>
+							</div>
+						</div>
+						<div class="guest-row">
+							<div class="guest-row-label">Guest 2</div>
+							<div class="guest-fields">
+								<div class="group" style="margin:0">
+									<label>Name</label>
+									<input type="text" id="g3-name-3" placeholder="GUEST NAME">
+                        </div>
+								<div class="group" style="margin:0">
+									<label>Title</label>
+									<input type="text" id="g3-title-3" placeholder="GUEST TITLE">
+                        </div>
+							</div>
+						</div>
+					</div>
+
+					<hr class="divider">
+
+						<div style="display:flex; gap:10px;">
+							<button class="btn btn-primary" id="bar-show-btn" style="flex:1">Show</button>
+							<button class="btn btn-secondary" id="bar-update-btn" style="flex:1">Update</button>
+							<button class="btn btn-danger" id="bar-hide-btn" style="flex:1">Hide</button>
+						</div>
+						<p class="status-msg" id="bar-status-msg"></p>
+					</div>
+
+			</div>
+			<!-- /.layout -->
+		</div>
+		<!-- /#admin-area -->
+
+		<script type="module">
+			import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+			import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+			import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+			const firebaseConfig = {
+			apiKey: "AIzaSyA3Yc9g3XB7FPbwaimfyMwg76dRchmu92w",
+			authDomain: "streamoverlay-84cd1.firebaseapp.com",
+			databaseURL: "https://streamoverlay-84cd1-default-rtdb.europe-west1.firebasedatabase.app/",
+			projectId: "streamoverlay-84cd1",
+			storageBucket: "streamoverlay-84cd1.firebasestorage.app",
+			messagingSenderId: "293942876995",
+			appId: "1:293942876995:web:024fc614dbfce900fdadf6"
+			};
+
+			const app = initializeApp(firebaseConfig);
+			const db  = getDatabase(app);
+			const auth = getAuth(app);
+
+			/* ── Login ── */
+			document.getElementById('login-btn').addEventListener('click', () => {
+			const email    = document.getElementById('email-input').value;
+			const password = document.getElementById('password-input').value;
+			const errorDiv = document.getElementById('login-error');
+			errorDiv.innerText = "Logging in…";
+
+			signInWithEmailAndPassword(auth, email, password)
+			.then(() => {
+			document.getElementById('login-area').style.display = 'none';
+			document.getElementById('admin-area').style.display = 'block';
+			})
+			.catch(() => { errorDiv.innerText = "Invalid credentials. Try again."; });
+			});
+
+			/* ── Community Question ── */
+			document.getElementById('update-btn').addEventListener('click', () => {
+			const userNameText    = document.getElementById('username-input').value;
+			const questionText    = document.getElementById('text-input').value;
+			const iconFile        = document.getElementById('icon-select').value;
 			const displayDuration = parseInt(document.getElementById('duration-input').value) || 15;
 
-            set(ref(db, 'communityQuestion'), {
-                username: userNameText,
-                text: questionText,
-                icon: iconFile,
-				duration: displayDuration,
-				timestamp: Date.now()
-            })
-            .then(() => {
-                const status = document.getElementById('status-msg');
-                status.innerText = "Overlay Updated!";
-                document.getElementById('text-input').value = ""; 
-                setTimeout(() => status.innerText = "", 2000);
-            })
-            .catch((error) => console.error("Error updating:", error));
-        });
-    </script>
-</body>
+			set(ref(db, 'communityQuestion'), {
+			username: userNameText,
+			text: questionText,
+			icon: iconFile,
+			duration: displayDuration,
+			timestamp: Date.now()
+			}).then(() => {
+			const status = document.getElementById('status-msg');
+			status.innerText = "Overlay Updated!";
+			document.getElementById('text-input').value = "";
+			setTimeout(() => status.innerText = "", 2000);
+			}).catch(console.error);
+			});
+
+			document.getElementById('reset-btn').addEventListener('click', () => {
+			set(ref(db, 'communityQuestion'), {
+			username: '', text: '', icon: '', duration: 0, timestamp: 0
+			}).then(() => {
+			const status = document.getElementById('status-msg');
+			status.style.color = '#f38ba8';
+			status.innerText = "Notification hidden.";
+			document.getElementById('username-input').value = '';
+			document.getElementById('text-input').value = '';
+			setTimeout(() => { status.innerText = ''; status.style.color = ''; }, 2000);
+			}).catch(console.error);
+			});
+
+			/* ── Lower Bar ── */
+			let activeType = 'notification';
+
+			// Tab switching
+			document.querySelectorAll('.tab-btn').forEach(btn => {
+			btn.addEventListener('click', () => {
+			document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+			document.querySelectorAll('.bar-form').forEach(f => f.classList.remove('active'));
+			btn.classList.add('active');
+			activeType = btn.dataset.type;
+			document.getElementById('form-' + activeType).classList.add('active');
+			updatePreview();
+			});
+			});
+
+			// Build the payload from current form state
+			function buildPayload(visible) {
+			if (activeType === 'notification') {
+			return {
+			type: 'notification',
+			visible,
+			text: document.getElementById('notif-text').value,
+			timestamp: Date.now()
+			};
+			} else if (activeType === 'guests2') {
+			return {
+			type: 'guests2',
+			visible,
+			guests: [
+			{ name: document.getElementById('g2-name-1').value, title: document.getElementById('g2-title-1').value },
+			{ name: document.getElementById('g2-name-2').value, title: document.getElementById('g2-title-2').value }
+			],
+			timestamp: Date.now()
+			};
+			} else {
+			return {
+			type: 'guests3',
+			visible,
+			guests: [
+			{ name: document.getElementById('g3-name-1').value, title: document.getElementById('g3-title-1').value },
+			{ name: document.getElementById('g3-name-2').value, title: document.getElementById('g3-title-2').value },
+			{ name: document.getElementById('g3-name-3').value, title: document.getElementById('g3-title-3').value }
+			],
+			timestamp: Date.now()
+			};
+			}
+			}
+
+			function showBarStatus(msg, color) {
+			const el = document.getElementById('bar-status-msg');
+			el.style.color = color || '#a6e3a1';
+			el.innerText = msg;
+			setTimeout(() => el.innerText = '', 2500);
+			}
+
+			document.getElementById('bar-show-btn').addEventListener('click', () => {
+			set(ref(db, 'lowerBar'), buildPayload(true))
+			.then(() => showBarStatus('Bar shown!'))
+			.catch(console.error);
+			});
+
+			document.getElementById('bar-update-btn').addEventListener('click', () => {
+			set(ref(db, 'lowerBar'), buildPayload(true))
+			.then(() => showBarStatus('Bar updated!'))
+			.catch(console.error);
+			});
+
+			document.getElementById('bar-hide-btn').addEventListener('click', () => {
+			set(ref(db, 'lowerBar'), { visible: false, timestamp: Date.now() })
+			.then(() => showBarStatus('Bar hidden.', '#f38ba8'))
+			.catch(console.error);
+			});
+
+			// Watch Firebase for visibility badge
+			onValue(ref(db, 'lowerBar'), (snapshot) => {
+			const data = snapshot.val();
+			const badge = document.getElementById('bar-vis-badge');
+			if (data && data.visible) {
+			badge.className = 'vis-badge on';
+			badge.textContent = 'Live';
+			} else {
+			badge.className = 'vis-badge off';
+			badge.textContent = 'Hidden';
+			}
+			});
+
+			// Watch Firebase for community question visibility badge
+			// Mirrors the overlay logic: live while within the duration window, then hidden
+			let cqHideTimer = null;
+			onValue(ref(db, 'communityQuestion'), (snapshot) => {
+			const data = snapshot.val();
+			const badge = document.getElementById('cq-vis-badge');
+
+			if (cqHideTimer) { clearTimeout(cqHideTimer); cqHideTimer = null; }
+
+			if (data && data.username && data.text && data.timestamp) {
+			const elapsed  = Date.now() - data.timestamp;
+			const duration = (data.duration || 15) * 1000;
+			const remaining = duration - elapsed;
+
+			if (remaining > 0) {
+			badge.className = 'vis-badge on';
+			badge.textContent = 'Live';
+			cqHideTimer = setTimeout(() => {
+			badge.className = 'vis-badge off';
+			badge.textContent = 'Hidden';
+			}, remaining);
+			} else {
+			badge.className = 'vis-badge off';
+			badge.textContent = 'Hidden';
+			}
+			} else {
+			badge.className = 'vis-badge off';
+			badge.textContent = 'Hidden';
+			}
+			});
+
+			// Live preview
+			function updatePreview() {
+			const preview = document.getElementById('bar-preview');
+			// Remove old cells (keep logo divs at first and last)
+			const existing = preview.querySelectorAll('.bp-cell, .bp-notification-wrap');
+			existing.forEach(e => e.remove());
+
+			const logoDiv = preview.querySelector('.bp-logo');
+			const rightDiv = preview.querySelector('.bp-right-logo');
+
+			if (activeType === 'notification') {
+			const cell = document.createElement('div');
+			cell.className = 'bp-cell';
+			cell.style.flex = '1';
+			const txt = document.createElement('div');
+			txt.className = 'bp-notification';
+			txt.textContent = document.getElementById('notif-text').value || 'Notification text…';
+			cell.appendChild(txt);
+			preview.insertBefore(cell, rightDiv);
+
+			} else if (activeType === 'guests2') {
+			[1,2].forEach(i => {
+			const cell = document.createElement('div');
+			cell.className = 'bp-cell';
+			const name = document.createElement('div');
+			name.className = 'bp-name';
+			name.textContent = document.getElementById(`g2-name-${i}`).value || `Guest ${i}`;
+			const title = document.createElement('div');
+			title.className = 'bp-title';
+			title.textContent = document.getElementById(`g2-title-${i}`).value || 'Title';
+			cell.appendChild(name); cell.appendChild(title);
+			preview.insertBefore(cell, rightDiv);
+			});
+
+			} else {
+			[1,2,3].forEach(i => {
+			const cell = document.createElement('div');
+			cell.className = 'bp-cell';
+			const name = document.createElement('div');
+			name.className = 'bp-name';
+			name.textContent = document.getElementById(`g3-name-${i}`).value || `Guest ${i}`;
+			const title = document.createElement('div');
+			title.className = 'bp-title';
+			title.textContent = document.getElementById(`g3-title-${i}`).value || 'Title';
+			cell.appendChild(name); cell.appendChild(title);
+			preview.insertBefore(cell, rightDiv);
+			});
+			}
+			}
+
+			// Attach live preview updates to all inputs
+			document.querySelectorAll('#form-notification input, #form-notification textarea, #form-guests2 input, #form-guests3 input').forEach(el => {
+			el.addEventListener('input', updatePreview);
+			});
+
+			updatePreview();
+		</script>
+	</body>
 </html>
