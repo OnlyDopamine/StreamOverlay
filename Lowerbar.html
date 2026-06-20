@@ -57,7 +57,7 @@
 							.lb-name {
 							font-family: 'Raleway', sans-serif;
 							font-weight: 500;
-							font-size: 28px;       
+							font-size: 28px;     
 							color: #D4A842;
 							text-transform: uppercase;
 							letter-spacing: 0.08em;
@@ -68,7 +68,7 @@
 							.lb-title {
 							font-family: 'Raleway', sans-serif;
 							font-weight: 300;
-							font-size: 14px;       
+							font-size: 14px;     
 							color: #D4A842;
 							text-transform: uppercase;
 							letter-spacing: 0.13em;
@@ -91,11 +91,11 @@
 							/* Bar 1 (notification): zone x=697→1863 */
 							#lb-bar1 .lb-cell { left: 697px; width: 1166px; padding: 10px 16px; overflow: hidden; }
 
-							/* Bar 2 (2 guests) */
+							/* Bar 2 (2 people) */
 							#lb-bar2 .lb-cell-1 { left: 947px;  width: 333px; }
 							#lb-bar2 .lb-cell-2 { left: 1280px; width: 333px; }
 
-							/* Bar 3 (3 guests) */
+							/* Bar 3 (3 people) */
 							#lb-bar3 .lb-cell-1 { left: 781px;  width: 333px; }
 							#lb-bar3 .lb-cell-2 { left: 1114px; width: 333px; }
 							#lb-bar3 .lb-cell-3 { left: 1447px; width: 334px; }
@@ -200,7 +200,6 @@
 			}
 			}
 
-			// Shrink notification text to fit within cell width AND height
 			function fitNotification(el, defaultSize, minSize) {
 			el.style.fontSize = defaultSize + 'px';
 			const parent = el.parentElement;
@@ -217,13 +216,13 @@
 			}
 			}
 
-			// After making a bar visible, fit all name+title elements inside it
 			function fitAllInBar(barEl) {
 			barEl.querySelectorAll('.lb-name').forEach(el  => fitText(el, 28, 14));
 			barEl.querySelectorAll('.lb-title').forEach(el => fitText(el, 14, 8));
 			}
 
 			const textLayer = document.getElementById('lb-text-layer');
+			let barWasVisible = false;
 
 			function updateContent(data) {
 			Object.values(bars).forEach(b => b.style.display = 'none');
@@ -263,17 +262,22 @@
 
 			if (!data || !data.visible) {
 			lowerBarEl.classList.remove('visible');
+			barWasVisible = false;
 			return;
 			}
 
-			// Fade text out, swap content, fade back in
+			if (barWasVisible) {
 			textLayer.style.opacity = '0';
 			setTimeout(() => {
 			updateContent(data);
 			textLayer.style.opacity = '1';
 			}, 500);
-
+			} else {
+			textLayer.style.opacity = '1';
+			updateContent(data);
 			lowerBarEl.classList.add('visible');
+			barWasVisible = true;
+			}
 			});
 		</script>
 	</body>
